@@ -54,7 +54,7 @@ func main() {
 
 func isValidSequence(reports []int) bool {
 	if len(reports) <= 1 {
-		return true
+		return false
 	}
 
 	isIncrementing := true
