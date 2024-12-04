@@ -102,10 +102,10 @@ func ParsePart2(input string) int {
 			for _, pair := range diagonalPairs {
 				dir1, dir2 := pair[0], pair[1]
 
-				// Check first diagonal
-				word1 := checkDiagonal(matrix, lineIndex, charIndex, dir1)
-				// Check second diagonal
-				word2 := checkDiagonal(matrix, lineIndex, charIndex, dir2)
+				// make the word from the first diagonal
+				word1 := makeDiagonalWord(matrix, lineIndex, charIndex, dir1)
+				// make the word from the second diagonal
+				word2 := makeDiagonalWord(matrix, lineIndex, charIndex, dir2)
 
 				if word1 == "MAS" && word2 == "MAS" {
 					count++
@@ -118,17 +118,17 @@ func ParsePart2(input string) int {
 	return count
 }
 
-func checkDiagonal(matrix [][]string, startLine, startChar int, dir [2]int) string {
+func makeDiagonalWord(matrix [][]string, startLine, startChar int, dir [2]int) string {
 	word := "A" // Start with center A
 
-	// Check backwards for M (-1 step)
+	// add letter from backward diagonal
 	newLineM := startLine - dir[0]
 	newCharM := startChar - dir[1]
 	if newLineM >= 0 && newLineM < len(matrix) && newCharM >= 0 && newCharM < len(matrix[0]) {
 		word = matrix[newLineM][newCharM] + word
 	}
 
-	// Check forward for S (+1 step)
+	// add letter from forward diagonal
 	newLineS := startLine + dir[0]
 	newCharS := startChar + dir[1]
 	if newLineS >= 0 && newLineS < len(matrix) && newCharS >= 0 && newCharS < len(matrix[0]) {
