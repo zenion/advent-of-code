@@ -56,7 +56,7 @@ func ParsePart1(input string) int {
 			for _, dir := range directions {
 				word := ""
 
-				// check all 4 characters in the direction
+				// check 4 characters in the current direction
 				for i := 0; i < 4; i++ {
 					newLineIndex := lineIndex + dir[0]*i
 					newCharIndex := charIndex + dir[1]*i
