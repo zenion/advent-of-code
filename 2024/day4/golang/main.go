@@ -124,16 +124,14 @@ func checkDiagonal(matrix [][]string, startLine, startChar int, dir [2]int) stri
 	// Check backwards for M (-1 step)
 	newLineM := startLine - dir[0]
 	newCharM := startChar - dir[1]
-	if newLineM >= 0 && newLineM < len(matrix) &&
-		newCharM >= 0 && newCharM < len(matrix[0]) {
+	if newLineM >= 0 && newLineM < len(matrix) && newCharM >= 0 && newCharM < len(matrix[0]) {
 		word = matrix[newLineM][newCharM] + word
 	}
 
 	// Check forward for S (+1 step)
 	newLineS := startLine + dir[0]
 	newCharS := startChar + dir[1]
-	if newLineS >= 0 && newLineS < len(matrix) &&
-		newCharS >= 0 && newCharS < len(matrix[0]) {
+	if newLineS >= 0 && newLineS < len(matrix) && newCharS >= 0 && newCharS < len(matrix[0]) {
 		word = word + matrix[newLineS][newCharS]
 	}
 
