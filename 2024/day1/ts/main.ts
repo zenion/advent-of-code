@@ -5,8 +5,8 @@ type Columns = {
   right: number[]
 }
 
-function parseColumns(fileContents: string): Columns {
-  const [left, right] = fileContents
+function parseColumns(contents: string): Columns {
+  const [left, right] = contents
     .trim()
     .split('\n')
     .filter((line) => line.trim() !== '')
@@ -22,16 +22,16 @@ function parseColumns(fileContents: string): Columns {
   return { left, right }
 }
 
-function solvePart1(fileContents: string): number {
-  const { left, right } = parseColumns(fileContents)
+function solvePart1(contents: string): number {
+  const { left, right } = parseColumns(contents)
 
   return left.reduce((acc, curr, i) => {
     return acc + Math.abs(curr - right[i])
   }, 0)
 }
 
-function solvePart2(fileContents: string): number {
-  const { left, right } = parseColumns(fileContents)
+function solvePart2(contents: string): number {
+  const { left, right } = parseColumns(contents)
 
   return left.reduce((acc, leftNum) => {
     const countInRight = right.filter((rightNum) => rightNum === leftNum).length
@@ -40,9 +40,9 @@ function solvePart2(fileContents: string): number {
 }
 
 if (import.meta.main) {
-  const fileContents = Deno.readTextFileSync('../input.txt')
-  console.log(`Part 1: ${solvePart1(fileContents)}`)
-  console.log(`Part 2: ${solvePart2(fileContents)}`)
+  const contents = Deno.readTextFileSync('../input.txt')
+  console.log(`Part 1: ${solvePart1(contents)}`)
+  console.log(`Part 2: ${solvePart2(contents)}`)
 }
 
 Deno.test('test', async (t) => {
