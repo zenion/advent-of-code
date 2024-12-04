@@ -1,5 +1,5 @@
-const file = Bun.file('../input.txt')
-const lines = (await file.text()).split('\n').filter((line) => line.trim() !== '')
+const file = Deno.readTextFileSync('../input.txt')
+const lines = file.split('\n').filter((line) => line.trim() !== '')
 
 interface Match {
   index: number

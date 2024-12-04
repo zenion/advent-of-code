@@ -10,71 +10,88 @@ import (
 	"strings"
 )
 
-func readNumberPairs(filePath string) ([]int, []int, error) {
-	content, err := os.ReadFile(filePath)
-	if err != nil {
-		return nil, nil, err
-	}
+type Columns struct {
+	left  []int
+	right []int
+}
 
-	lines := strings.Split(string(content), "\n")
+func parseColumns(contents string) (Columns, error) {
+	lines := strings.Split(contents, "\n")
 
-	// Remove any empty lines
+	// Remove empty lines
 	lines = slices.DeleteFunc(lines, func(line string) bool {
 		return line == ""
 	})
 
-	var left, right []int
+	var cols Columns
 	for _, line := range lines {
-		nums := strings.Split(line, "   ")
+		nums := strings.Fields(line) // Fields handles multiple spaces better than Split
 
-		numA, numB := 0, 0
-		if numA, err = strconv.Atoi(nums[0]); err != nil {
-			return nil, nil, err
+		left, err := strconv.Atoi(nums[0])
+		if err != nil {
+			return Columns{}, err
 		}
-		if numB, err = strconv.Atoi(nums[1]); err != nil {
-			return nil, nil, err
+		right, err := strconv.Atoi(nums[1])
+		if err != nil {
+			return Columns{}, err
 		}
 
-		left = append(left, numA)
-		right = append(right, numB)
+		cols.left = append(cols.left, left)
+		cols.right = append(cols.right, right)
 	}
 
-	return left, right, nil
+	slices.Sort(cols.left)
+	slices.Sort(cols.right)
+
+	return cols, nil
 }
 
-func calculateAbsoluteDifferences(left, right []int) int {
-	slices.Sort(left)
-	slices.Sort(right)
-
-	sum := 0
-	for i := 0; i < len(left); i++ {
-		sum += int(math.Abs(float64(left[i] - right[i])))
+func solvePart1(contents string) (int, error) {
+	cols, err := parseColumns(contents)
+	if err != nil {
+		return 0, err
 	}
-	return sum
+
+	sum := 0
+	for i := 0; i < len(cols.left); i++ {
+		sum += int(math.Abs(float64(cols.left[i] - cols.right[i])))
+	}
+	return sum, nil
 }
 
-func calculateMatchingProducts(left, right []int) int {
+func solvePart2(contents string) (int, error) {
+	cols, err := parseColumns(contents)
+	if err != nil {
+		return 0, err
+	}
+
 	sum := 0
-	for i := 0; i < len(left); i++ {
+	for _, leftNum := range cols.left {
 		countInRight := 0
-		for j := 0; j < len(right); j++ {
-			if left[i] == right[j] {
+		for _, rightNum := range cols.right {
+			if leftNum == rightNum {
 				countInRight++
 			}
 		}
-		sum += left[i] * countInRight
+		sum += leftNum * countInRight
 	}
-	return sum
+	return sum, nil
 }
 
 func main() {
-	left, right, err := readNumberPairs("input.txt")
+	contents, err := os.ReadFile("../input.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	part1 := calculateAbsoluteDifferences(left, right)
-	part2 := calculateMatchingProducts(left, right)
+	part1, err := solvePart1(string(contents))
+	if err != nil {
+		log.Fatal(err)
+	}
+	part2, err := solvePart2(string(contents))
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	fmt.Printf("Part 1: %d\n", part1)
 	fmt.Printf("Part 2: %d\n", part2)
