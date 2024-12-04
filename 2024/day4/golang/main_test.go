@@ -15,7 +15,6 @@ MXMXAXMASX
 `
 
 func TestParsePart1(t *testing.T) {
-
 	want := 18
 	got := ParsePart1(input)
 
