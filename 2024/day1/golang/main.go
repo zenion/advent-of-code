@@ -18,14 +18,13 @@ type Columns struct {
 func parseColumns(contents string) (Columns, error) {
 	lines := strings.Split(contents, "\n")
 
-	// Remove empty lines
 	lines = slices.DeleteFunc(lines, func(line string) bool {
 		return line == ""
 	})
 
 	var cols Columns
 	for _, line := range lines {
-		nums := strings.Fields(line) // Fields handles multiple spaces better than Split
+		nums := strings.Fields(line)
 
 		left, err := strconv.Atoi(nums[0])
 		if err != nil {
