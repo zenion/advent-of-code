@@ -17,24 +17,27 @@ func main() {
 
 func ParsePart1(input string) (int, [][]int, [][]int) {
 	parts := strings.Split(input, "\n\n")
-
-	orderingRulesRaw := strings.Split(parts[0], "\n")
-
 	orderingRules := [][]int{}
+	documents := [][]int{}
+
+	// parse ordering rules from the input
+	orderingRulesRaw := strings.Split(parts[0], "\n")
 	for _, line := range orderingRulesRaw {
+		if line == "" {
+			continue
+		}
 		nums := strings.Split(line, "|")
 		num1, _ := strconv.Atoi(nums[0])
 		num2, _ := strconv.Atoi(nums[1])
-		orderingRules = append(orderingRules, []int{
-			num1, num2,
-		})
+		orderingRules = append(orderingRules, []int{num1, num2})
 	}
 
+	// parse documents from the input
 	documentsRaw := strings.Split(parts[1], "\n")
-	documentsRaw = documentsRaw[:len(documentsRaw)-1] // remove last empty line
-
-	documents := [][]int{}
 	for _, line := range documentsRaw {
+		if line == "" {
+			continue
+		}
 		numsRaw := strings.Split(line, ",")
 		nums := []int{}
 		for _, numRaw := range numsRaw {
@@ -44,116 +47,122 @@ func ParsePart1(input string) (int, [][]int, [][]int) {
 		documents = append(documents, nums)
 	}
 
-	incorrectDocuments := [][]int{}
+	validMiddles := []int{}
+	invalidDocuments := [][]int{} // we need this for part 2 it seems
 
-	middles := []int{}
 	for _, document := range documents {
-		fmt.Printf("document: %v\n", document)
-		valid := true
-		for i, pageNum := range document {
-			fmt.Printf("document: %v, pageNum: %d\n", document, pageNum)
-			for _, rule := range orderingRules {
-				if pageNum == rule[0] {
-					fmt.Printf("document: %v, pageNum: %d, rule: %v\n", document, pageNum, rule)
-					// check to see if rule[1] appears backward from our current position of i and if so the document is invalid
-					for j := i - 1; j >= 0; j-- {
-						if document[j] == rule[1] {
-							fmt.Printf("document: %v, pageNum: %d, rule[1]: %d found at position %d - INVALID!", document, pageNum, rule[1], j)
-							valid = false
-							incorrectDocuments = append(incorrectDocuments, document)
-							break
-						}
-					}
-				} else if pageNum == rule[1] {
-					fmt.Printf("document: %v, pageNum: %d, rule: %v\n", document, pageNum, rule)
-					// check to see if rule[0] appears forward from our current position of i and if so the document is invalid
-					for j := i + 1; j < len(document); j++ {
-						if document[j] == rule[0] {
-							fmt.Printf("document: %v, pageNum: %d, rule[0]: %d found at position %d - INVALID!", document, pageNum, rule[0], j)
-							valid = false
-							incorrectDocuments = append(incorrectDocuments, document)
-							break
-						}
-					}
-				}
-			}
-			if !valid {
-				fmt.Printf("document %v is INVALID\n", document)
-				break
-			}
-		}
-		if valid {
-			middles = append(middles, getMiddlePage(document))
-			fmt.Printf("document %v is VALID WOOHOO!!\n", document)
+		if isValidDocument(document, orderingRules) {
+			validMiddles = append(validMiddles, getMiddlePage(document))
+		} else {
+			invalidDocuments = append(invalidDocuments, document)
 		}
 	}
 
-	fmt.Printf("middles: %v\n", middles)
-
 	middleSum := 0
-	for _, middle := range middles {
+	for _, middle := range validMiddles {
 		middleSum += middle
 	}
 
-	return middleSum, incorrectDocuments, orderingRules
+	return middleSum, invalidDocuments, orderingRules
 }
 
-func ParsePart2(incorrectDocuments [][]int, orderingRules [][]int) int {
-	reorderedMiddlesSum := 0
+func isValidDocument(document []int, rules [][]int) bool {
+	for _, rule := range rules {
+		before, after := rule[0], rule[1]
+		beforeIdx := -1
+		afterIdx := -1
 
-	for _, document := range incorrectDocuments {
-		reorderedDocument := reorderDocument(document, orderingRules)
-		middlePage := getMiddlePage(reorderedDocument)
-		reorderedMiddlesSum += middlePage
-	}
-
-	return reorderedMiddlesSum
-}
-
-func reorderDocument(document []int, orderingRules [][]int) []int {
-	// Convert rules to a more usable format
-	// where graph[a][b] means a must come before b
-	graph := make(map[int][]int)
-	inDegree := make(map[int]int)
-
-	// Initialize graph and in-degree count
-	for _, rule := range orderingRules {
-		graph[rule[0]] = append(graph[rule[0]], rule[1])
-		inDegree[rule[1]]++
-	}
-
-	// Initialize queue with nodes having zero in-degree
-	queue := []int{}
-	for _, page := range document {
-		if inDegree[page] == 0 {
-			queue = append(queue, page)
+		// Find the indices of both the 'before' and 'after' pages in the document
+		for i, page := range document {
+			if page == before {
+				beforeIdx = i
+			}
+			if page == after {
+				afterIdx = i
+			}
 		}
-	}
 
-	// Perform topological sort
-	sorted := []int{}
-	for len(queue) > 0 {
-		node := queue[0]
-		queue = queue[1:]
-		sorted = append(sorted, node)
-
-		for _, neighbor := range graph[node] {
-			inDegree[neighbor]--
-			if inDegree[neighbor] == 0 {
-				queue = append(queue, neighbor)
+		// if both are found then we have a valid rule
+		if beforeIdx != -1 && afterIdx != -1 {
+			// if its backward its no good baby
+			if beforeIdx > afterIdx {
+				return false
 			}
 		}
 	}
 
-	// If sorted length is not equal to document length, there was a cycle
-	if len(sorted) != len(document) {
-		fmt.Println("Cycle detected, cannot reorder document")
-		return document
-	}
-
-	return sorted
+	// otherwise we are chillin'
+	return true
 }
 
 func getMiddlePage(document []int) int {
 	return document[len(document)/2]
+}
+
+func ParsePart2(incorrectDocuments [][]int, orderingRules [][]int) int {
+	middleSum := 0
+
+	for _, doc := range incorrectDocuments {
+		orderedDoc := []int{}
+
+		// fucking graphs man
+		graph := make(map[int][]int)   // full graph map
+		edgeCount := make(map[int]int) // map of page to number of incoming edges
+
+		// Initialize all pages in both maps
+		for _, page := range doc {
+			graph[page] = []int{}
+			edgeCount[page] = 0
+		}
+
+		// Build the graph with the rules
+		for _, rule := range orderingRules {
+			before, after := rule[0], rule[1]
+			// Only evaluate rules where both pages of rule exist in the document
+			if containsPage(doc, before) && containsPage(doc, after) {
+				graph[before] = append(graph[before], after)
+				edgeCount[after]++
+			}
+		}
+
+		// make a poor mans queue from a int slice because golang is too basic
+		queue := []int{}
+
+		// Find pages with no incoming edges and queue em up
+		for page := range graph {
+			if edgeCount[page] == 0 {
+				queue = append(queue, page)
+			}
+		}
+
+		for len(queue) > 0 {
+			// Take the first page from the "queue" we made and do "queue" things to "pop" what we took
+			current := queue[0]
+			queue = queue[1:]
+			orderedDoc = append(orderedDoc, current)
+
+			// find all pages that come after the current page from the graph
+			for _, next := range graph[current] {
+				// reduce our edging intensity
+				edgeCount[next]--
+				if edgeCount[next] == 0 {
+					// we're done edging... let's add it to the queue
+					queue = append(queue, next)
+				}
+			}
+		}
+
+		middleSum += getMiddlePage(orderedDoc)
+	}
+
+	return middleSum
+}
+
+func containsPage(doc []int, page int) bool {
+	for _, p := range doc {
+		if p == page {
+			return true
+		}
+	}
+	return false
 }
