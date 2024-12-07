@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 )
 
 type Direction int
@@ -27,23 +28,24 @@ type Game struct {
 	StuckInLoop      bool
 	NumOfRepeatSteps int
 	BaracadeLocation []int
+	Visualize        bool
 }
 
 func main() {
 	file_data, _ := os.ReadFile("input.txt")
 	fmt.Println(ParsePart1(string(file_data)))
-	fmt.Println(ParsePart2(string(file_data)))
+	// fmt.Println(ParsePart2(string(file_data)))
 }
 
 func ParsePart1(input string) int {
-	game := NewGameFromInput(input)
+	game := NewGameFromInput(input, true)
 	game.Play()
 
 	return game.VisitedCount
 }
 
 func ParsePart2(input string) int {
-	game := NewGameFromInput(input)
+	game := NewGameFromInput(input, false)
 
 	loopCount := 0
 
@@ -58,7 +60,7 @@ func ParsePart2(input string) int {
 					game.Board[game.BaracadeLocation[0]][game.BaracadeLocation[1]] = "O"
 					// game.PrintBoard()
 				}
-				game = NewGameFromInput(input)
+				game = NewGameFromInput(input, false)
 			}
 		}
 	}
@@ -102,7 +104,12 @@ func (g *Game) Play() bool {
 		}
 		g.Board[g.CharPos[0]][g.CharPos[1]] = setDirectionString(g.CharDir)
 
-		// g.PrintBoard()
+		if g.Visualize {
+			// clear screen
+			fmt.Print("\033[H\033[2J")
+			g.PrintBoard()
+			time.Sleep(6 * time.Millisecond)
+		}
 	}
 }
 
@@ -132,9 +139,10 @@ func (g *Game) getNextPosition() []int {
 	return nextPos
 }
 
-func NewGameFromInput(input string) Game {
+func NewGameFromInput(input string, visualize bool) Game {
 	game := Game{
 		VisitedCount: 1,
+		Visualize:    visualize,
 	}
 	lines := strings.Split(input, "\n")
 
