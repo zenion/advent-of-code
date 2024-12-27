@@ -13,11 +13,19 @@ func main() {
 	})
 
 	blocks := calcBlocks(diskMap)
+	compactBlocks(blocks)
+	compactBlocksChecksum := calcChecksum(blocks)
+	fmt.Println("Compact Blocks:")
+	fmt.Println()
 
-	compact(blocks)
-	checksum := calcChecksum(blocks)
+	blocks2 := calcBlocks(diskMap)
+	compactFiles(blocks2)
+	compactFilesChecksum := calcChecksum(blocks2)
+	fmt.Println("Compact Files:")
+	fmt.Println()
 
-	fmt.Println(checksum)
+	fmt.Println("Compact Blocks Checksum:", compactBlocksChecksum)
+	fmt.Println("Compact Files Checksum:", compactFilesChecksum)
 }
 
 func calcChecksum(blocks []int) int {
@@ -50,7 +58,7 @@ func calcBlocks(diskMap []int) []int {
 	return blocks
 }
 
-func compact(blocks []int) {
+func compactBlocks(blocks []int) {
 	left := 0
 	right := len(blocks) - 1
 	for left < right {
@@ -63,5 +71,59 @@ func compact(blocks []int) {
 		} else {
 			left++
 		}
+	}
+}
+
+func findHighestId(blocks []int) int {
+	for i := len(blocks) - 1; i >= 0; i-- {
+		if blocks[i] >= 0 {
+			return blocks[i]
+		}
+	}
+	return -1
+}
+
+func compactFiles(blocks []int) {
+	currentId := findHighestId(blocks)
+	right := len(blocks) - 1
+
+	for currentId > 0 {
+		currentLen := 0
+
+		// look backwards from the right to find the length of the current block
+		for blocks[right] != currentId {
+			right--
+		}
+		for blocks[right] == currentId {
+			currentLen++
+			right--
+		}
+
+		left := 0
+		freeLen := 0
+
+		// look forwards from the left to find the first free space that can fit the block
+		for left <= right {
+			if blocks[left] >= 0 {
+				freeLen = 0
+				left++
+			} else {
+				freeLen++
+				left++
+			}
+			if freeLen == currentLen {
+				break
+			}
+		}
+
+		if freeLen == currentLen {
+			// move the block into the free space
+			for i := 0; i < currentLen; i++ {
+				blocks[left-i-1] = currentId
+				blocks[right+i+1] = -1
+			}
+		}
+
+		currentId--
 	}
 }
