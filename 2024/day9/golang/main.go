@@ -15,14 +15,10 @@ func main() {
 	blocks := calcBlocks(diskMap)
 	compactBlocks(blocks)
 	compactBlocksChecksum := calcChecksum(blocks)
-	fmt.Println("Compact Blocks:")
-	fmt.Println()
 
 	blocks2 := calcBlocks(diskMap)
 	compactFiles(blocks2)
 	compactFilesChecksum := calcChecksum(blocks2)
-	fmt.Println("Compact Files:")
-	fmt.Println()
 
 	fmt.Println("Compact Blocks Checksum:", compactBlocksChecksum)
 	fmt.Println("Compact Files Checksum:", compactFilesChecksum)
